@@ -12,7 +12,7 @@
 
     base16-vim = {
       flake = false;
-      url = "github:tinted-theming/base16-vim";
+      url = "github:tinted-theming/tinted-vim";
     };
 
     base16.url = "github:SenchoPens/base16.nix";
@@ -79,30 +79,35 @@
     };
   };
 
-  outputs =
-    { nixpkgs, base16, self, ... }@inputs:
+  outputs = {
+    nixpkgs,
+    base16,
+    self,
+    ...
+  } @ inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         inherit (nixpkgs) lib;
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         packages = let
-            universalPackages = {
-              docs = import ./docs { inherit pkgs inputs lib; };
-              palette-generator = pkgs.callPackage ./palette-generator { };
-            };
+          universalPackages = {
+            docs = import ./docs {inherit pkgs inputs lib;};
+            palette-generator = pkgs.callPackage ./palette-generator {};
+          };
 
-            # Testbeds are virtual machines based on NixOS, therefore they are
-            # only available for Linux systems.
-            testbedPackages = lib.optionalAttrs
-              (lib.hasSuffix "-linux" system)
-              (import ./stylix/testbed.nix { inherit pkgs inputs lib; });
-          in
-            universalPackages // testbedPackages;
+          # Testbeds are virtual machines based on NixOS, therefore they are
+          # only available for Linux systems.
+          testbedPackages =
+            lib.optionalAttrs
+            (lib.hasSuffix "-linux" system)
+            (import ./stylix/testbed.nix {inherit pkgs inputs lib;});
+        in
+          universalPackages // testbedPackages;
       }
     )
     // {
-      nixosModules.stylix = { pkgs, ... }@args: {
+      nixosModules.stylix = {pkgs, ...} @ args: {
         imports = [
           (import ./stylix/nixos inputs {
             inherit (self.packages.${pkgs.system}) palette-generator;
@@ -112,7 +117,7 @@
         ];
       };
 
-      homeManagerModules.stylix = { pkgs, ... }@args: {
+      homeManagerModules.stylix = {pkgs, ...} @ args: {
         imports = [
           (import ./stylix/hm inputs {
             inherit (self.packages.${pkgs.system}) palette-generator;
@@ -121,7 +126,7 @@
         ];
       };
 
-      darwinModules.stylix = { pkgs, ... }@args: {
+      darwinModules.stylix = {pkgs, ...} @ args: {
         imports = [
           (import ./stylix/darwin inputs {
             inherit (self.packages.${pkgs.system}) palette-generator;
